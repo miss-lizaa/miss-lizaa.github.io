@@ -19,13 +19,15 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta property="og:type" content="article">
+    <meta name="description" content="这是一篇加密文章，内容暂不公开。">
+<meta property="og:type" content="article">
 <meta property="og:title" content="序">
 <meta property="og:url" content="http://example.com/2025/03/10/00-20250310/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="这是一篇加密文章，内容暂不公开。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2025-03-10T15:50:25.000Z">
-<meta property="article:modified_time" content="2025-03-10T15:52:10.723Z">
+<meta property="article:modified_time" content="2025-03-10T16:04:16.261Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="日记">
 <meta name="twitter:card" content="summary_large_image">
@@ -221,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          0 words
+          8 words
         
       </span>
     
@@ -272,11 +274,22 @@
             <h1 id="seo-header">序</h1>
             
             
-              <div class="markdown-body">
-                
-                
-                
-              </div>
+              
+              <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
+  <script id="hbeData" type="hbeData" data-hmacdigest="e3c91d29b52d65096dd144e17dc825d08faf6c3b44fe74e4cffd24e2f999d750">34f1268e43f1459359817da6634f366d3c708554caa9edd656d1f4db1583702a</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">请输入密码查看：</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script data-pjax src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">
+              
+
+              
             
             <hr/>
             <div>
@@ -518,6 +531,23 @@
   
 
 
+
+
+  
+  <script defer>
+    if (document.getElementById('hbePass') || document.querySelector('hbe-prefix')) {
+      Fluid.utils.waitElementLoaded('hbe-prefix', function() {
+        var hbePrefix = document.querySelector('hbe-prefix');
+        hbePrefix.parentElement.classList.add('markdown-body');
+        Fluid.utils.retry(function() {
+          if (Fluid.boot && Fluid.boot.refresh) {
+            Fluid.boot.refresh();
+            return true;
+          }
+        }, 100, 10);
+      })
+    }
+  </script>
 
 
   
