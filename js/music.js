@@ -1,13 +1,29 @@
 const ap = new APlayer({
-    container: document.getElementById('aplayer'),
-    fixed: true,
-	autoplay: true, //自动播放
-    audio: [
-	{
-        name: "浴室",
-        artist: 'deca joins',
-        url: 'https://m704.music.126.net/20211212133437/6298f876daf4b3a20b984659f71f8968/jdyyaac/000c/560b/5153/7f43625368aa52c4fbb0f968fa2007d2.m4a?authSecret=0000017dad0be60506550aa4681408a0',
-        cover: 'https://p1.music.126.net/byjfkEIOWI_RmxSKEWTPyw==/18910500486297525.jpg?param=200y200',	
-    },
-	]
-});
+     container: document.getElementById('aplayer'),
+     fixed: true,
+ 	autoplay: true, //自动播放
+     listFolded: false, //列表默认折叠
+     listMaxHeight: 90, //列表最大高度
+     loop: 'all', //音频循环播放, 可选值: 'all'全部循环, 'one'单曲循环, 'none'不循环
+     audio: [
+     {
+         name: 'jump in', 
+         artist: 'めぐみん(CV:高橋李依)、ゆんゆん(CV:豊崎愛生)',
+         url: '/music/jump%20in.mp3', // 这里也可以写音乐网站外链https://m704.music.126.net/
+         cover: '/music/jump%20in.jpg',// 这里也可以写音乐网站外链https://m704.music.126.net/
+     },
+     {
+         name: 'spiral', 
+         artist: 'LONGMAN',
+         url: '/music/spiral.mp3',
+         cover: '/music/spiral.jpg',
+     },
+     {
+         name: 'Call of Silence', 
+         artist: '泽野弘之',
+         url: '/music/Call%20of%20Silence.mp3',
+         cover: '/music/Call%20of%20Silence.jpg',
+     },
+ 
+ 	]
+ });
