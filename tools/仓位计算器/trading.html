@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 BTC 交易系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-item {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .status-item.online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 BTC 交易系统</h1>
+            <div class="status">
+                <div class="status-item" id="apiStatus">API: 检查中...</div>
+                <div class="status-item" id="accountStatus">账户: 未登录</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('account')">账户管理</button>
+            <button class="tab" onclick="switchTab('trade')">交易下单</button>
+            <button class="tab" onclick="switchTab('position')">持仓查询</button>
+            <button class="tab" onclick="switchTab('history')">交易历史</button>
+        </div>
+
+        <!-- 账户管理 -->
+        <div id="account" class="tab-content active">
+            <h2>账户管理</h2>
+            <div id="accountAlert"></div>
+
+            <div class="form-group">
+                <label>交易所</label>
+                <select id="exchange">
+                    <option value="BINANCE">Binance</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>API Key</label>
+                <input type="text" id="apiKey" placeholder="输入 API Key">
+            </div>
+
+            <div class="form-group">
+                <label>Secret Key</label>
+                <input type="password" id="secretKey" placeholder="输入 Secret Key">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="testnet" checked>
+                    使用测试网
+                </label>
+            </div>
+
+            <button class="btn" onclick="addAccount()">添加账户</button>
+            <button class="btn btn-secondary" onclick="loadAccounts()" style="margin-left: 10px;">刷新账户列表</button>
+
+            <div id="accountList" class="result-box"></div>
+        </div>
+
+        <!-- 交易下单 -->
+        <div id="trade" class="tab-content">
+            <h2>交易下单（自动止损止盈）</h2>
+            <div id="tradeAlert"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>选择账户</label>
+                    <select id="tradeAccountId">
+                        <option value="">请先添加账户</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>交易对</label>
+                    <select id="symbol">
+                        <option value="BTCUSDT">BTCUSDT</option>
+                        <option value="ETHUSDT">ETHUSDT</option>
+                        <option value="SOLUSDT">SOLUSDT</option>
+                        <option value="BNBUSDT">BNBUSDT</option>
+                        <option value="DOGEUSDT">DOGEUSDT</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>方向</label>
+                    <select id="side">
+                        <option value="BUY">做多 (BUY)</option>
+                        <option value="SELL">做空 (SELL)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>订单类型</label>
+                    <select id="orderType">
+                        <option value="MARKET">市价单</option>
+                        <option value="LIMIT">限价单</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>数量</label>
+                    <input type="number" id="quantity" step="0.0001" placeholder="0.001">
+                </div>
+
+                <div class="form-group">
+                    <label>价格（限价单）</label>
+                    <input type="number" id="price" step="0.01" placeholder="市价单无需填写">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>止损价格</label>
+                    <input type="number" id="stopLoss" step="0.01" placeholder="例如: 95000">
+                </div>
+
+                <div class="form-group">
+                    <label>止盈价格</label>
+                    <input type="number" id="takeProfit" step="0.01" placeholder="例如: 105000">
+                </div>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label>
+                    <input type="checkbox" id="autoStopLoss" checked>
+                    自动止损
+                </label>
+                <label>
+                    <input type="checkbox" id="autoTakeProfit" checked>
+                    自动止盈
+                </label>
+            </div>
+
+            <button class="btn" onclick="createOrder()">提交订单</button>
+
+            <div id="orderResult" class="result-box"></div>
+        </div>
+
+        <!-- 持仓查询 -->
+        <div id="position" class="tab-content">
+            <h2>持仓查询</h2>
+            <div id="positionAlert"></div>
+
+            <div class="form-group">
+                <label>选择账户</label>
+                <select id="positionAccountId">
+                    <option value="">请先添加账户</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="loadPositions()">查询持仓</button>
+
+            <div id="positionList" class="result-box"></div>
+        </div>
+
+        <!-- 交易历史 -->
+        <div id="history" class="tab-content">
+            <h2>交易历史</h2>
+            <div id="historyAlert"></div>
+
+            <div class="form-group">
+                <label>选择账户</label>
+                <select id="historyAccountId">
+                    <option value="">请先添加账户</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="loadHistory()">查询历史</button>
+            <button class="btn btn-secondary" onclick="loadStatistics()" style="margin-left: 10px;">查看统计</button>
+
+            <div id="historyList" class="result-box"></div>
+            <div id="statisticsResult" class="result-box"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let currentAccounts = [];
+
+        // 页面加载时检查 API 状态
+        window.onload = function() {
+            checkApiStatus();
+            loadAccounts();
+        };
+
+        // 切换标签
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // 检查 API 状态
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    document.getElementById('apiStatus').textContent = 'API: 在线';
+                    document.getElementById('apiStatus').classList.add('online');
+                } else {
+                    document.getElementById('apiStatus').textContent = 'API: 离线';
+                }
+            } catch (error) {
+                document.getElementById('apiStatus').textContent = 'API: 离线';
+                console.error('API 检查失败:', error);
+            }
+        }
+
+        // 添加账户
+        async function addAccount() {
+            const exchange = document.getElementById('exchange').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const secretKey = document.getElementById('secretKey').value;
+            const testnet = document.getElementById('testnet').checked;
+
+            if (!apiKey || !secretKey) {
+                showAlert('accountAlert', 'error', '请填写 API Key 和 Secret Key');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/account/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ exchange, apiKey, secretKey, testnet })
+                });
+
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    showAlert('accountAlert', 'success', '账户添加成功！');
+                    document.getElementById('apiKey').value = '';
+                    document.getElementById('secretKey').value = '';
+                    loadAccounts();
+                } else {
+                    showAlert('accountAlert', 'error', '添加失败: ' + data.message);
+                }
+            } catch (error) {
+                showAlert('accountAlert', 'error', '请求失败: ' + error.message);
+            }
+        }
+
+        // 加载账户列表
+        async function loadAccounts() {
+            try {
+                const response = await fetch(`${API_BASE}/account/list`);
+                const data = await response.json();
+
+                if (data.code === 200 && data.data) {
+                    currentAccounts = data.data;
+                    displayAccounts(data.data);
+                    updateAccountSelects(data.data);
+
+                    if (data.data.length > 0) {
+                        document.getElementById('accountStatus').textContent = `账户: ${data.data.length} 个`;
+                        document.getElementById('accountStatus').classList.add('online');
+                    }
+                }
+            } catch (error) {
+                console.error('加载账户失败:', error);
+            }
+        }
+
+        // 显示账户列表
+        function displayAccounts(accounts) {
+            const listDiv = document.getElementById('accountList');
+
+            if (accounts.length === 0) {
+                listDiv.innerHTML = '<p>暂无账户</p>';
+                listDiv.classList.add('show');
+                return;
+            }
+
+            let html = '<table><tr><th>ID</th><th>交易所</th><th>余额</th><th>状态</th><th>操作</th></tr>';
+
+            accounts.forEach(account => {
+                html += `
+                    <tr>
+                        <td>${account.id}</td>
+                        <td>${account.exchange}${account.testnet ? ' (测试网)' : ''}</td>
+                        <td>${account.balance ? account.balance.toFixed(2) + ' USDT' : '未同步'}</td>
+                        <td>${account.status}</td>
+                        <td>
+                            <button class="btn" style="padding: 5px 10px; font-size: 12px;" onclick="syncBalance(${account.id})">同步余额</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</table>';
+            listDiv.innerHTML = html;
+            listDiv.classList.add('show');
+        }
+
+        // 更新账户下拉框
+        function updateAccountSelects(accounts) {
+            const selects = ['tradeAccountId', 'positionAccountId', 'historyAccountId'];
+
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = accounts.length > 0
+                    ? accounts.map(acc => `<option value="${acc.id}">${acc.exchange} (ID: ${acc.id})</option>`).join('')
+                    : '<option value="">请先添加账户</option>';
+            });
+        }
+
+        // 同步余额
+        async function syncBalance(accountId) {
+            try {
+                const response = await fetch(`${API_BASE}/account/sync/${accountId}`, { method: 'POST' });
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    showAlert('accountAlert', 'success', '余额同步成功！');
+                    loadAccounts();
+                } else {
+                    showAlert('accountAlert', 'error', '同步失败: ' + data.message);
+                }
+            } catch (error) {
+                showAlert('accountAlert', 'error', '请求失败: ' + error.message);
+            }
+        }
+
+        // 创建订单
+        async function createOrder() {
+            const accountId = document.getElementById('tradeAccountId').value;
+            const symbol = document.getElementById('symbol').value;
+            const side = document.getElementById('side').value;
+            const type = document.getElementById('orderType').value;
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const price = type === 'LIMIT' ? parseFloat(document.getElementById('price').value) : null;
+            const stopLoss = parseFloat(document.getElementById('stopLoss').value) || null;
+            const takeProfit = parseFloat(document.getElementById('takeProfit').value) || null;
+            const autoStopLoss = document.getElementById('autoStopLoss').checked;
+            const autoTakeProfit = document.getElementById('autoTakeProfit').checked;
+
+            if (!accountId || !quantity) {
+                showAlert('tradeAlert', 'error', '请填写必填项');
+                return;
+            }
+
+            const orderData = {
+                accountId: parseInt(accountId),
+                symbol,
+                side,
+                type,
+                quantity,
+                price,
+                stopLoss,
+                takeProfit,
+                autoStopLoss,
+                autoTakeProfit
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/trade/order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    showAlert('tradeAlert', 'success', '订单创建成功！');
+                    displayOrderResult(data.data);
+                } else {
+                    showAlert('tradeAlert', 'error', '创建失败: ' + data.message);
+                }
+            } catch (error) {
+                showAlert('tradeAlert', 'error', '请求失败: ' + error.message);
+            }
+        }
+
+        // 显示订单结果
+        function displayOrderResult(order) {
+            const resultDiv = document.getElementById('orderResult');
+
+            let html = `
+                <h3>订单详情</h3>
+                <table>
+                    <tr><td>订单ID</td><td>${order.id}</td></tr>
+                    <tr><td>交易对</td><td>${order.symbol}</td></tr>
+                    <tr><td>方向</td><td>${order.side}</td></tr>
+                    <tr><td>数量</td><td>${order.quantity}</td></tr>
+                    <tr><td>状态</td><td>${order.status}</td></tr>
+                    ${order.stopLoss ? `<tr><td>止损价格</td><td>${order.stopLoss}</td></tr>` : ''}
+                    ${order.takeProfit ? `<tr><td>止盈价格</td><td>${order.takeProfit}</td></tr>` : ''}
+                    ${order.stopLossOrderId ? `<tr><td>止损单ID</td><td>${order.stopLossOrderId}</td></tr>` : ''}
+                    ${order.takeProfitOrderId ? `<tr><td>止盈单ID</td><td>${order.takeProfitOrderId}</td></tr>` : ''}
+                </table>
+            `;
+
+            resultDiv.innerHTML = html;
+            resultDiv.classList.add('show');
+        }
+
+        // 加载持仓
+        async function loadPositions() {
+            const accountId = document.getElementById('positionAccountId').value;
+
+            if (!accountId) {
+                showAlert('positionAlert', 'error', '请选择账户');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/trade/position/list/${accountId}`);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    displayPositions(data.data);
+                } else {
+                    showAlert('positionAlert', 'error', '查询失败: ' + data.message);
+                }
+            } catch (error) {
+                showAlert('positionAlert', 'error', '请求失败: ' + error.message);
+            }
+        }
+
+        // 显示持仓
+        function displayPositions(positions) {
+            const listDiv = document.getElementById('positionList');
+
+            if (!positions || positions.length === 0) {
+                listDiv.innerHTML = '<p>暂无持仓</p>';
+                listDiv.classList.add('show');
+                return;
+            }
+
+            let html = '<table><tr><th>交易对</th><th>数量</th><th>开仓价</th><th>当前价</th><th>未实现盈亏</th><th>止损</th><th>止盈</th></tr>';
+
+            positions.forEach(pos => {
+                html += `
+                    <tr>
+                        <td>${pos.symbol}</td>
+                        <td>${pos.quantity}</td>
+                        <td>${pos.entryPrice}</td>
+                        <td>${pos.currentPrice || '-'}</td>
+                        <td>${pos.unrealizedPnl || '-'}</td>
+                        <td>${pos.stopLoss || '-'}</td>
+                        <td>${pos.takeProfit || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</table>';
+            listDiv.innerHTML = html;
+            listDiv.classList.add('show');
+        }
+
+        // 加载交易历史
+        async function loadHistory() {
+            const accountId = document.getElementById('historyAccountId').value;
+
+            if (!accountId) {
+                showAlert('historyAlert', 'error', '请选择账户');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/statistics/history/${accountId}?limit=20`);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    displayHistory(data.data);
+                } else {
+                    showAlert('historyAlert', 'error', '查询失败: ' + data.message);
+                }
+            } catch (error) {
+                showAlert('historyAlert', 'error', '请求失败: ' + error.message);
+            }
+        }
+
+        // 显示交易历史
+        function displayHistory(trades) {
+            const listDiv = document.getElementById('historyList');
+
+            if (!trades || trades.length === 0) {
+                listDiv.innerHTML = '<p>暂无交易记录</p>';
+                listDiv.classList.add('show');
+                return;
+            }
+
+            let html = '<table><tr><th>时间</th><th>交易对</th><th>方向</th><th>数量</th><th>价格</th><th>金额</th><th>盈亏</th></tr>';
+
+            trades.forEach(trade => {
+                html += `
+                    <tr>
+                        <td>${new Date(trade.tradeTime).toLocaleString()}</td>
+                        <td>${trade.symbol}</td>
+                        <td>${trade.side}</td>
+                        <td>${trade.quantity}</td>
+                        <td>${trade.price}</td>
+                        <td>${trade.amount || '-'}</td>
+                        <td>${trade.realizedPnl || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</table>';
+            listDiv.innerHTML = html;
+            listDiv.classList.add('show');
+        }
+
+        // 加载统计数据
+        async function loadStatistics() {
+            const accountId = document.getElementById('historyAccountId').value;
+
+            if (!accountId) {
+                showAlert('historyAlert', 'error', '请选择账户');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/statistics/account/${accountId}`);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    displayStatistics(data.data);
+                } else {
+                    showAlert('historyAlert', 'error', '查询失败: ' + data.message);
+                }
+            } catch (error) {
+                showAlert('historyAlert', 'error', '请求失败: ' + error.message);
+            }
+        }
+
+        // 显示统计数据
+        function displayStatistics(stats) {
+            const resultDiv = document.getElementById('statisticsResult');
+
+            let html = `
+                <h3>交易统计</h3>
+                <table>
+                    <tr><td>总交易次数</td><td>${stats.totalTrades}</td></tr>
+                    <tr><td>总盈亏</td><td>${stats.totalProfit} USDT</td></tr>
+                    <tr><td>胜率</td><td>${stats.winRate}%</td></tr>
+                    <tr><td>平均盈亏</td><td>${stats.avgProfit} USDT</td></tr>
+                    <tr><td>盈利次数</td><td>${stats.winCount}</td></tr>
+                    <tr><td>亏损次数</td><td>${stats.lossCount}</td></tr>
+                </table>
+            `;
+
+            resultDiv.innerHTML = html;
+            resultDiv.classList.add('show');
+        }
+
+        // 显示提示信息
+        function showAlert(elementId, type, message) {
+            const alertDiv = document.getElementById(elementId);
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.display = 'block';
+
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

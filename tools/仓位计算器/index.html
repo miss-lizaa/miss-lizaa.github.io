@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 加密货币仓位计算助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .result-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .direction-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+
+        .direction-long {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .direction-short {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .result-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-table td:first-child {
+            font-weight: 600;
+            color: #666;
+            width: 40%;
+        }
+
+        .result-table td:last-child {
+            color: #333;
+            text-align: right;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            font-weight: 700;
+            color: #856404;
+        }
+
+        .warnings {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .warnings h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .warning-item {
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .warning-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .warning-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .warning-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                margin: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 加密货币仓位计算助手</h1>
+            <p>专业的仓位管理工具 · 自动计算最优仓位 · 风险检查 · 盈亏比分析</p>
+        </div>
+
+        <div class="content">
+            <form id="calculatorForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="exchange">交易所</label>
+                        <select id="exchange" required>
+                            <option value="Binance">Binance（币安）</option>
+                            <option value="OKX">OKX（欧易）</option>
+                            <option value="Bitget">Bitget</option>
+                            <option value="Bybit">Bybit</option>
+                            <option value="Hyperliquid">Hyperliquid</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="symbol">标的/币种</label>
+                        <select id="symbol" required>
+                            <option value="BTC">BTC（比特币）</option>
+                            <option value="ETH">ETH（以太坊）</option>
+                            <option value="SOL">SOL（Solana）</option>
+                            <option value="BNB">BNB（币安币）</option>
+                            <option value="DOGE">DOGE（狗狗币）</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="balance">账户总额 (USDT)</label>
+                        <input type="number" id="balance" placeholder="10000" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="riskPercent">止损后亏本金的 (%)</label>
+                        <input type="number" id="riskPercent" value="1" step="0.1" min="0.1" max="10" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="entryPrice">开仓价格</label>
+                        <input type="number" id="entryPrice" placeholder="27050" step="0.0001" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stopLoss">止损价格</label>
+                        <input type="number" id="stopLoss" placeholder="26000" step="0.0001" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="takeProfit">止盈价格</label>
+                        <input type="number" id="takeProfit" placeholder="35000" step="0.0001" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="leverage">杠杆倍数 (1=现货)</label>
+                        <input type="number" id="leverage" value="1" min="1" max="125" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">📊 计算仓位</button>
+            </form>
+
+            <div id="result" class="result"></div>
+
+            <!-- 实盘交易区域 -->
+            <div id="tradeSection" class="result" style="display: none; margin-top: 20px;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">🚀 实盘交易（自动止损止盈）</h3>
+
+                <div class="form-group">
+                    <label>API Key（首次使用需配置）</label>
+                    <input type="text" id="apiKey" placeholder="输入 Binance API Key">
+                </div>
+
+                <div class="form-group">
+                    <label>Secret Key</label>
+                    <input type="password" id="secretKey" placeholder="输入 Binance Secret Key">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="testnet" checked style="width: auto; margin-right: 8px;">
+                        使用测试网（建议先测试）
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="autoStopLoss" checked style="width: auto; margin-right: 8px;">
+                        自动止损
+                    </label>
+                    <label style="margin-left: 20px;">
+                        <input type="checkbox" id="autoTakeProfit" checked style="width: auto; margin-right: 8px;">
+                        自动止盈
+                    </label>
+                </div>
+
+                <button class="btn" onclick="placeRealOrder()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    💰 提交实盘订单
+                </button>
+
+                <div id="tradeResult" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            📌 仓位控制，风险自负 · 后端 API: http://localhost:8080
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let currentAccountId = null;
+        let calculationResult = null;
+        // 交易所手续费率表
+        const EXCHANGE_FEES = {
+            'Binance': { spot: 0.001, contract: 0.0005 },
+            'OKX': { spot: 0.001, contract: 0.0005 },
+            'Bitget': { spot: 0.001, contract: 0.0006 },
+            'Bybit': { spot: 0.001, contract: 0.00055 },
+            'Hyperliquid': { spot: 0.0007, contract: 0.00045 }
+        };
+
+        document.getElementById('calculatorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculatePosition();
+        });
+
+        function calculatePosition() {
+            // 获取输入值
+            const exchange = document.getElementById('exchange').value;
+            const symbol = document.getElementById('symbol').value;
+            const balance = parseFloat(document.getElementById('balance').value);
+            const riskPercent = parseFloat(document.getElementById('riskPercent').value);
+            const entryPrice = parseFloat(document.getElementById('entryPrice').value);
+            const stopLoss = parseFloat(document.getElementById('stopLoss').value);
+            const takeProfit = parseFloat(document.getElementById('takeProfit').value);
+            const leverage = parseInt(document.getElementById('leverage').value);
+
+            try {
+                // 计算
+                const result = calculate(exchange, symbol, balance, riskPercent, entryPrice, stopLoss, takeProfit, leverage);
+
+                // 显示结果
+                displayResult(result);
+            } catch (error) {
+                alert('❌ ' + error.message);
+            }
+        }
+
+        function calculate(exchange, symbol, balance, riskPercent, entryPrice, stopLoss, takeProfit, leverage) {
+            const warnings = [];
+            const errors = [];
+
+            // 第1步：判断方向
+            let direction;
+            if (stopLoss < entryPrice) {
+                direction = '做多';
+            } else if (stopLoss > entryPrice) {
+                direction = '做空';
+            } else {
+                throw new Error('止损价格不能等于开仓价格');
+            }
+
+            // 第2步：计算止损距离
+            let stopDistance;
+            if (direction === '做多') {
+                stopDistance = (entryPrice - stopLoss) / entryPrice;
+            } else {
+                stopDistance = (stopLoss - entryPrice) / entryPrice;
+            }
+
+            // 第3步：计算最大亏损金额
+            const maxLoss = balance * (riskPercent / 100);
+
+            // 第4步：手续费修正
+            const isSpot = leverage === 1;
+            const feeRates = EXCHANGE_FEES[exchange];
+            const feeRate = isSpot ? feeRates.spot : feeRates.contract;
+            const feeCost = feeRate * 2;
+            const actualStopCost = stopDistance + feeCost;
+
+            // 第5步：计算名义仓位
+            const nominalPosition = maxLoss / actualStopCost;
+
+            // 第6步：计算保证金
+            const margin = nominalPosition / leverage;
+
+            // 第7步：计算可买入数量
+            const quantity = nominalPosition / entryPrice;
+
+            // 第8步：计算止盈距离
+            let profitDistance;
+            if (direction === '做多') {
+                profitDistance = (takeProfit - entryPrice) / entryPrice;
+            } else {
+                profitDistance = (entryPrice - takeProfit) / entryPrice;
+            }
+
+            // 第9步：计算预期盈利
+            const expectedProfit = nominalPosition * profitDistance - nominalPosition * feeRate * 2;
+
+            // 第10步：计算盈亏比
+            const riskRewardRatio = expectedProfit / maxLoss;
+
+            // 计算保证金占比
+            const marginRatio = (margin / balance) * 100;
+
+            // 风险检查
+            if (margin > balance) {
+                errors.push('❌ 保证金超出账户余额，无法开仓。请减小仓位或降低杠杆。');
+            }
+            if (margin > balance * 0.3) {
+                warnings.push('⚠️ 保证金占比超30%，仓位偏重，注意集中度风险。');
+            }
+            if (riskRewardRatio < 1) {
+                warnings.push('⚠️ 盈亏比不足1:1，收益不覆盖风险，建议调整止盈止损位。');
+            }
+            if (stopDistance < feeCost) {
+                errors.push('❌ 止损距离小于手续费成本，不管涨跌都亏，请扩大止损。');
+            }
+            if (leverage > 20) {
+                warnings.push('⚠️ 高杠杆交易，极端行情下可能被强平，确认你能承受。');
+            }
+            if (direction === '做多' && stopLoss > entryPrice) {
+                errors.push('❌ 止损方向错误（做多但止损>开仓），请检查输入。');
+            }
+            if (direction === '做空' && stopLoss < entryPrice) {
+                errors.push('❌ 止损方向错误（做空但止损<开仓），请检查输入。');
+            }
+
+            if (errors.length === 0 && warnings.length === 0) {
+                warnings.push('✅ 所有风险检查通过');
+            }
+
+            return {
+                direction,
+                symbol,
+                exchange,
+                isSpot,
+                feeRate,
+                balance,
+                riskPercent,
+                maxLoss,
+                entryPrice,
+                stopLoss,
+                takeProfit,
+                stopDistance,
+                feeCost,
+                actualStopCost,
+                leverage,
+                nominalPosition,
+                margin,
+                quantity,
+                profitDistance,
+                expectedProfit,
+                riskRewardRatio,
+                marginRatio,
+                warnings,
+                errors
+            };
+        }
+
+        function displayResult(result) {
+            calculationResult = result; // 保存计算结果供实盘交易使用
+
+            const directionClass = result.direction === '做多' ? 'direction-long' : 'direction-short';
+            const directionSymbol = result.direction === '做多' ? '▲' : '▼';
+            const tradeType = result.isSpot ? '现货' : '合约';
+
+            let html = `
+                <div class="result-header">
+                    <h2>📊 仓位计算结果</h2>
+                    <span class="direction-badge ${directionClass}">${result.direction} ${directionSymbol}</span>
+                </div>
+                <p><strong>标的：</strong>${result.symbol} &nbsp;&nbsp; <strong>交易所：</strong>${result.exchange}（${tradeType} Taker 费率 ${(result.feeRate * 100).toFixed(3)}%）</p>
+
+                <table class="result-table">
+                    <tr><td>账户总额</td><td>${result.balance.toFixed(2)} USDT</td></tr>
+                    <tr><td>止损后亏本金的</td><td>${result.riskPercent.toFixed(1)}%（最多亏 ${result.maxLoss.toFixed(2)} USDT）</td></tr>
+                    <tr><td>开仓价格</td><td>${result.entryPrice.toFixed(4)}</td></tr>
+                    <tr><td>止损价格</td><td>${result.stopLoss.toFixed(4)}</td></tr>
+                    <tr><td>止盈价格</td><td>${result.takeProfit.toFixed(4)}</td></tr>
+                    <tr><td>止损距离</td><td>${(result.stopDistance * 100).toFixed(4)}%</td></tr>
+                    <tr><td>手续费（双边）</td><td>${(result.feeCost * 100).toFixed(4)}%</td></tr>
+                    <tr><td>实际止损成本</td><td>${(result.actualStopCost * 100).toFixed(4)}%</td></tr>
+                    <tr><td>杠杆倍数</td><td>${result.leverage}x</td></tr>
+                    <tr class="highlight"><td>名义仓位（开多大的单）</td><td>${result.nominalPosition.toFixed(2)} USDT</td></tr>
+                    <tr class="highlight"><td>保证金（占用多少钱）</td><td>${result.margin.toFixed(2)} USDT</td></tr>
+                    <tr class="highlight"><td>可买入数量</td><td>${formatQuantity(result.symbol, result.quantity)}</td></tr>
+                    <tr><td>预期盈利</td><td>${result.expectedProfit.toFixed(2)} USDT</td></tr>
+                    <tr class="highlight"><td>盈亏比</td><td>${result.riskRewardRatio.toFixed(1)} : 1</td></tr>
+                    <tr><td>保证金占比</td><td>${result.marginRatio.toFixed(2)}%</td></tr>
+                </table>
+
+                <div class="warnings">
+                    <h3>⚠️ 风险检查：</h3>
+            `;
+
+            result.errors.forEach(error => {
+                html += `<div class="warning-item warning-error">${error}</div>`;
+            });
+
+            result.warnings.forEach(warning => {
+                const className = warning.includes('✅') ? 'warning-success' : 'warning-warning';
+                html += `<div class="warning-item ${className}">${warning}</div>`;
+            });
+
+            html += '</div>';
+
+            document.getElementById('result').innerHTML = html;
+            document.getElementById('result').classList.add('show');
+
+            // 显示实盘交易区域
+            if (result.errors.length === 0) {
+                document.getElementById('tradeSection').style.display = 'block';
+            }
+        }
+
+        function formatQuantity(symbol, quantity) {
+            if (symbol.includes('BTC')) {
+                return `${quantity.toFixed(4)} ${symbol}`;
+            } else if (symbol.includes('ETH')) {
+                return `${quantity.toFixed(3)} ${symbol}`;
+            } else {
+                return `${quantity.toFixed(2)} ${symbol}`;
+            }
+        }
+
+        // 实盘下单功能
+        async function placeRealOrder() {
+            if (!calculationResult) {
+                showTradeAlert('error', '请先计算仓位');
+                return;
+            }
+
+            const apiKey = document.getElementById('apiKey').value;
+            const secretKey = document.getElementById('secretKey').value;
+            const testnet = document.getElementById('testnet').checked;
+            const autoStopLoss = document.getElementById('autoStopLoss').checked;
+            const autoTakeProfit = document.getElementById('autoTakeProfit').checked;
+
+            if (!apiKey || !secretKey) {
+                showTradeAlert('error', '请填写 API Key 和 Secret Key');
+                return;
+            }
+
+            try {
+                // 1. 添加或获取账户
+                if (!currentAccountId) {
+                    const accountResponse = await fetch(`${API_BASE}/account/add`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            exchange: 'BINANCE',
+                            apiKey: apiKey,
+                            secretKey: secretKey,
+                            testnet: testnet
+                        })
+                    });
+
+                    const accountData = await accountResponse.json();
+
+                    if (accountData.code !== 200) {
+                        showTradeAlert('error', '账户添加失败: ' + accountData.message);
+                        return;
+                    }
+
+                    currentAccountId = accountData.data.id;
+                    showTradeAlert('success', '账户添加成功！');
+                }
+
+                // 2. 创建订单
+                const symbol = calculationResult.symbol + 'USDT';
+                const side = calculationResult.direction === '做多' ? 'BUY' : 'SELL';
+                const quantity = calculationResult.quantity;
+
+                const orderData = {
+                    accountId: currentAccountId,
+                    symbol: symbol,
+                    side: side,
+                    type: 'MARKET',
+                    quantity: quantity,
+                    stopLoss: calculationResult.stopLoss,
+                    takeProfit: calculationResult.takeProfit,
+                    autoStopLoss: autoStopLoss,
+                    autoTakeProfit: autoTakeProfit
+                };
+
+                showTradeAlert('info', '正在提交订单...');
+
+                const orderResponse = await fetch(`${API_BASE}/trade/order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                const orderResult = await orderResponse.json();
+
+                if (orderResult.code === 200) {
+                    const order = orderResult.data;
+                    let message = `
+                        <div style="background: #d4edda; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                            <h4 style="color: #155724; margin-bottom: 10px;">✅ 订单创建成功！</h4>
+                            <p><strong>订单ID:</strong> ${order.id}</p>
+                            <p><strong>交易对:</strong> ${order.symbol}</p>
+                            <p><strong>方向:</strong> ${order.side}</p>
+                            <p><strong>数量:</strong> ${order.quantity}</p>
+                            <p><strong>状态:</strong> ${order.status}</p>
+                            ${order.stopLossOrderId ? `<p><strong>止损单ID:</strong> ${order.stopLossOrderId}</p>` : ''}
+                            ${order.takeProfitOrderId ? `<p><strong>止盈单ID:</strong> ${order.takeProfitOrderId}</p>` : ''}
+                            <p style="margin-top: 10px; color: #155724;">
+                                ${autoStopLoss ? '✅ 已自动设置止损' : ''}
+                                ${autoTakeProfit ? '✅ 已自动设置止盈' : ''}
+                            </p>
+                        </div>
+                    `;
+                    document.getElementById('tradeResult').innerHTML = message;
+                } else {
+                    showTradeAlert('error', '订单创建失败: ' + orderResult.message);
+                }
+
+            } catch (error) {
+                showTradeAlert('error', '请求失败: ' + error.message + '<br>请确保后端服务已启动 (http://localhost:8080)');
+            }
+        }
+
+        function showTradeAlert(type, message) {
+            const colors = {
+                success: { bg: '#d4edda', color: '#155724' },
+                error: { bg: '#f8d7da', color: '#721c24' },
+                info: { bg: '#d1ecf1', color: '#0c5460' }
+            };
+
+            const style = colors[type] || colors.info;
+
+            document.getElementById('tradeResult').innerHTML = `
+                <div style="background: ${style.bg}; color: ${style.color}; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                    ${message}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

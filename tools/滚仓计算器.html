@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>滚仓计算器</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #07090d;
+  --bg-card:     #0c1018;
+  --bg-row-a:    #0e1420;
+  --bg-row-b:    #0b1019;
+  --border:      #182030;
+  --border-hi:   #253550;
+  --text:        #8fa0b8;
+  --text-mid:    #bbc8da;
+  --text-hi:     #dce8f5;
+  --accent:      #00ccff;
+  --accent-dim:  rgba(0,204,255,.08);
+  --gold:        #f5a623;
+  --gold-dim:    rgba(245,166,35,.08);
+  --green:       #00e57a;
+  --green-dim:   rgba(0,229,122,.07);
+  --red:         #ff4d6d;
+  --red-dim:     rgba(255,77,109,.08);
+  --radius:      10px;
+  --mono:        'JetBrains Mono', monospace;
+  --sans:        'Syne', sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  min-height:100vh;
+  padding:28px 20px 60px;
+  max-width:1400px;
+  margin:0 auto;
+}
+
+/* ── HEADER ── */
+.hdr{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:16px;
+  margin-bottom:28px;
+  padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+.hdr-left{display:flex;align-items:baseline;gap:14px}
+.hdr-title{
+  font-size:26px;font-weight:800;
+  color:var(--text-hi);letter-spacing:-.5px;
+}
+.hdr-sub{
+  font-family:var(--mono);font-size:11px;
+  color:var(--text);letter-spacing:.5px;
+}
+
+/* ── MODE TOGGLE ── */
+.mode-wrap{
+  display:flex;
+  background:var(--bg-card);
+  border:1px solid var(--border-hi);
+  border-radius:8px;overflow:hidden;
+}
+.mode-btn{
+  padding:8px 22px;
+  font-family:var(--sans);font-size:13px;font-weight:700;
+  color:var(--text);background:transparent;
+  border:none;cursor:pointer;transition:all .18s;
+}
+.mode-btn.on{background:var(--accent);color:#000}
+.mode-btn.on.gold{background:var(--gold);color:#000}
+
+/* ── CONTROLS ── */
+.controls{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:14px;margin-bottom:24px;
+}
+.ctrl{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 16px;
+}
+.ctrl-label{
+  font-size:10px;font-weight:700;
+  color:var(--text);text-transform:uppercase;
+  letter-spacing:1.2px;margin-bottom:9px;
+}
+.ctrl-row{display:flex;gap:8px;align-items:center}
+.ctrl-note{
+  font-family:var(--mono);font-size:10px;
+  color:var(--accent);margin-top:5px;
+}
+.ctrl-note.gold{color:var(--gold)}
+
+input[type=number],input[type=text],select{
+  background:var(--bg);
+  border:1px solid var(--border-hi);
+  color:var(--text-hi);
+  font-family:var(--mono);font-size:14px;
+  padding:7px 11px;border-radius:6px;
+  width:100%;outline:none;
+  transition:border-color .15s;
+  -moz-appearance:textfield;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button{-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--accent)}
+select{cursor:pointer}
+
+
+
+/* ── TABLE CARD ── */
+.tcard{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;margin-bottom:16px;
+}
+.tbar{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:12px 18px;
+  border-bottom:1px solid var(--border);
+}
+.tbar-title{
+  font-size:11px;font-weight:700;
+  color:var(--text-mid);text-transform:uppercase;
+  letter-spacing:1.2px;display:flex;align-items:center;gap:8px;
+}
+.tbar-acts{display:flex;gap:8px}
+.act-btn{
+  padding:5px 13px;font-family:var(--sans);
+  font-size:11px;font-weight:700;
+  border-radius:5px;cursor:pointer;border:1px solid;
+  transition:all .13s;
+}
+.btn-add{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.btn-add:hover{background:var(--green);color:#000}
+.btn-rst{background:transparent;border-color:var(--border-hi);color:var(--text)}
+.btn-rst:hover{border-color:var(--text-mid);color:var(--text-hi)}
+
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{
+  padding:9px 14px;
+  font-size:9px;font-weight:700;color:var(--text);
+  text-transform:uppercase;letter-spacing:1px;
+  text-align:right;
+  border-bottom:1px solid var(--border);
+  background:var(--bg-card);white-space:nowrap;
+}
+thead th:first-child,thead th:nth-child(2){text-align:left}
+
+tbody tr{border-bottom:1px solid rgba(24,32,48,.7);transition:background .1s}
+tbody tr:nth-child(odd){background:var(--bg-row-a)}
+tbody tr:nth-child(even){background:var(--bg-row-b)}
+tbody tr:hover{background:rgba(0,204,255,.03)}
+
+td{
+  padding:9px 14px;
+  font-family:var(--mono);font-size:12.5px;
+  color:var(--text-mid);text-align:right;
+  white-space:nowrap;
+}
+td:first-child{text-align:left}
+td:nth-child(2){text-align:left}
+
+.lvl-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;
+  background:var(--bg);border:1px solid var(--border-hi);
+  border-radius:6px;font-size:11px;font-weight:700;color:var(--text)
+}
+.lev-wrap{
+  display:flex;align-items:center;
+  justify-content:flex-end;gap:5px;
+}
+.lev-in{
+  width:62px;padding:4px 8px;
+  font-size:12.5px;text-align:center;
+}
+.lev-x{font-size:10px;color:var(--text)}
+
+.entry-in{
+  width:105px;padding:4px 8px;
+  font-size:12px;text-align:left;
+  background:var(--bg);
+  border:1px solid var(--border-hi);
+  color:var(--text-mid);
+  border-radius:5px;
+  font-family:var(--mono);
+  transition:border-color .15s, color .15s;
+}
+.entry-in:focus{ border-color:var(--accent); color:var(--text-hi); outline:none; }
+.entry-in.overridden{ border-color:var(--accent); color:var(--accent); }
+
+.c-gold{color:var(--gold);font-weight:500}
+.c-green{color:var(--green)}
+.c-hi{color:var(--text-hi);font-weight:500}
+.c-dim{color:var(--text);font-size:10px}
+
+.del-btn{
+  background:transparent;border:none;
+  color:var(--border-hi);cursor:pointer;
+  font-size:15px;padding:2px 7px;border-radius:4px;
+  transition:all .13s;
+}
+.del-btn:hover{background:var(--red-dim);color:var(--red)}
+
+/* ── MODE NOTE ── */
+.mnote{
+  font-family:var(--mono);font-size:11px;color:var(--text);
+  padding:10px 16px;
+  background:var(--bg-card);
+  border-left:2px solid var(--border-hi);
+  border-radius:0 6px 6px 0;
+  margin-bottom:20px;
+  line-height:1.7;
+}
+
+/* ── SUMMARY ── */
+.summary{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(175px,1fr));
+  gap:12px;
+}
+.scard{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 18px;
+}
+.scard-label{
+  font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--text);margin-bottom:10px;
+}
+.scard-val{
+  font-family:var(--mono);font-size:19px;font-weight:700;
+  color:var(--text-hi);
+}
+.scard-sub{
+  font-family:var(--mono);font-size:10px;
+  color:var(--text);margin-top:5px;line-height:1.5;
+}
+
+/* ── PULSE DOT ── */
+.dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--green);display:inline-block;flex-shrink:0;
+  animation:pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── EMPTY STATE ── */
+.empty-row td{
+  text-align:center !important;
+  color:var(--text);padding:36px;font-size:12px;
+}
+
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <span class="hdr-title">滚仓计算器</span>
+    <span class="hdr-sub">Rolling Position Simulator</span>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div class="mode-wrap">
+      <button class="mode-btn on" id="btn-long" onclick="setDir('long')">📈 做多</button>
+      <button class="mode-btn" id="btn-short" onclick="setDir('short')">📉 做空</button>
+    </div>
+    <div class="mode-wrap">
+      <button class="mode-btn on" id="btn-coin" onclick="setMode('coin')">币本位</button>
+      <button class="mode-btn" id="btn-usdt" onclick="setMode('usdt')">U本位</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+
+  <div class="ctrl">
+    <div class="ctrl-label">选择币种</div>
+    <select id="coin-sel" onchange="onCoinChange()"></select>
+    <div id="custom-row" style="display:none;margin-top:8px">
+      <input type="text" id="custom-sym" placeholder="输入代码，如 PEPEUSD" oninput="calculate()">
+    </div>
+  </div>
+
+  <div class="ctrl">
+    <div class="ctrl-label">首次开仓价格（USDT）</div>
+    <input type="number" id="entry-price" placeholder="0.00" min="0" step="any" oninput="calculate()">
+    <div class="ctrl-note">手动输入开仓时的价格</div>
+  </div>
+
+  <div class="ctrl">
+    <div class="ctrl-label" id="cap-label">初始本金（持币数量）</div>
+    <input type="number" id="init-cap" placeholder="10000" min="0" step="any" oninput="calculate()">
+    <div class="ctrl-note" id="cap-note">以币数量计（如 10000 DOGE）</div>
+  </div>
+
+  <div class="ctrl">
+    <div class="ctrl-label">初始杠杆（第1级）</div>
+    <div class="ctrl-row">
+      <input type="number" id="init-lev" value="25" min="1" max="100" step="1"
+             oninput="onInitLevChange(this.value)">
+      <span style="font-family:var(--mono);font-size:13px;color:var(--text)">× 倍</span>
+    </div>
+    <div class="ctrl-note">后续各级可在表中单独调整</div>
+  </div>
+
+  <div class="ctrl" style="min-width:220px">
+    <div class="ctrl-label">交易所（Taker手续费）</div>
+    <select id="exchange-sel" onchange="calculate()">
+      <option value="binance">🥇 币安 Binance</option>
+      <option value="bitget">🥈 Bitget</option>
+      <option value="okx">🥉 欧易 OKX</option>
+      <option value="bybit">🏅 Bybit</option>
+    </select>
+    <div id="fee-note" style="line-height:1.7;font-family:var(--mono);font-size:10px;margin-top:6px"></div>
+    <a id="reg-btn" href="#" target="_blank" rel="noopener"
+      style="display:flex;align-items:center;justify-content:center;gap:6px;
+             margin-top:10px;padding:8px 12px;border-radius:7px;
+             background:var(--accent);color:#000;
+             font-family:var(--sans);font-size:12px;font-weight:700;
+             text-decoration:none;transition:opacity .15s;">
+      🔗 使用优惠码注册 · 立省手续费
+    </a>
+  </div>
+
+</div>
+
+<!-- TABLE -->
+<div class="tcard">
+  <div class="tbar">
+    <div class="tbar-title">
+      <span class="dot"></span>
+      <span id="tbar-label">滚仓路径 · 币本位</span>
+    </div>
+    <div class="tbar-acts">
+      <button class="act-btn btn-add" onclick="addLevel()">＋ 添加级别</button>
+      <button class="act-btn btn-rst" onclick="resetLevs()">重置默认</button>
+    </div>
+  </div>
+  <div class="tscroll">
+    <table>
+      <thead>
+        <tr>
+          <th>级别</th>
+          <th>入场价格</th>
+          <th>目标价格</th>
+          <th id="th-move">所需涨幅</th>
+          <th>杠杆倍数</th>
+          <th id="th-cap">持币本金</th>
+          <th id="th-pos">合约仓位（币）</th>
+          <th id="th-val">完成后资产（U）</th>
+          <th id="th-profit">本级获利</th>
+          <th id="th-fee">本级手续费</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODE NOTE -->
+<div class="mnote" id="mnote"></div>
+
+<!-- SUMMARY -->
+<div class="summary">
+  <div class="scard">
+    <div class="scard-label">初始资产规模</div>
+    <div class="scard-val" id="s-init">—</div>
+    <div class="scard-sub" id="s-init-sub">—</div>
+  </div>
+  <div class="scard">
+    <div class="scard-label">全程完成后资产</div>
+    <div class="scard-val c-gold" id="s-final">—</div>
+    <div class="scard-sub" id="s-final-sub">—</div>
+  </div>
+  <div class="scard">
+    <div class="scard-label">资产增值倍数</div>
+    <div class="scard-val c-green" id="s-mult">—</div>
+    <div class="scard-sub" id="s-mult-sub">滚仓级数 n，收益 = 2ⁿ</div>
+  </div>
+  <div class="scard">
+    <div class="scard-label">最终目标价格</div>
+    <div class="scard-val" id="s-tgt">—</div>
+    <div class="scard-sub" id="s-tgt-sub">—</div>
+  </div>
+  <div class="scard">
+    <div class="scard-label">累计所需涨幅</div>
+    <div class="scard-val c-green" id="s-gain">—</div>
+    <div class="scard-sub" id="s-gain-sub">从首次开仓价到最终目标价</div>
+  </div>
+  <div class="scard">
+    <div class="scard-label">滚仓级数</div>
+    <div class="scard-val" id="s-lvls">—</div>
+    <div class="scard-sub">当前设定级数</div>
+  </div>
+</div>
+
+<!-- FEE SUMMARY -->
+<div class="summary" style="margin-top:12px">
+  <div class="scard" style="border-color:var(--red);background:rgba(255,77,109,.04)">
+    <div class="scard-label" style="color:var(--red)">累计手续费（原价）</div>
+    <div class="scard-val" id="s-fee-orig" style="color:var(--red)">—</div>
+    <div class="scard-sub" id="s-fee-orig-sub">—</div>
+  </div>
+  <div class="scard" style="border-color:var(--green);background:rgba(0,229,122,.04)">
+    <div class="scard-label" style="color:var(--green)">累计手续费（优惠后）</div>
+    <div class="scard-val c-green" id="s-fee-disc">—</div>
+    <div class="scard-sub" id="s-fee-disc-sub">—</div>
+  </div>
+  <div class="scard" style="border-color:var(--gold);background:rgba(245,166,35,.05)">
+    <div class="scard-label" style="color:var(--gold)">优惠链接节省手续费</div>
+    <div class="scard-val c-gold" id="s-fee-save">—</div>
+    <div class="scard-sub" id="s-fee-save-sub">—</div>
+    <a id="save-reg-btn" href="#" target="_blank" rel="noopener"
+      style="display:flex;align-items:center;justify-content:center;gap:5px;
+             margin-top:12px;padding:7px 10px;border-radius:6px;
+             background:rgba(245,166,35,.15);border:1px solid var(--gold);
+             color:var(--gold);font-family:var(--sans);font-size:11px;font-weight:700;
+             text-decoration:none;transition:all .15s">
+      🔗 点击注册领取优惠
+    </a>
+  </div>
+  <div class="scard" style="border-color:#229ED9;background:rgba(34,158,217,.05)">
+    <div class="scard-label" style="color:#229ED9">联系作者 · 有问必答</div>
+    <div class="scard-val" style="font-size:15px;color:var(--text-hi)">@jamesH7894</div>
+    <div class="scard-sub" style="margin-top:6px">注册后发 UID，每周返佣直接打给你</div>
+    <a href="https://t.me/jamesH7894" target="_blank" rel="noopener"
+      style="display:flex;align-items:center;justify-content:center;gap:6px;
+             margin-top:12px;padding:7px 10px;border-radius:6px;
+             background:rgba(34,158,217,.2);border:1px solid #229ED9;
+             color:#229ED9;font-family:var(--sans);font-size:11px;font-weight:700;
+             text-decoration:none;transition:all .15s">
+      ✈️ Telegram 私信我
+    </a>
+  </div>
+</div>
+
+<!-- TG FLOATING BUTTON -->
+<a href="https://t.me/jamesH7894" target="_blank" rel="noopener" title="Telegram 联系作者"
+  style="position:fixed;bottom:28px;right:28px;z-index:999;
+         width:52px;height:52px;border-radius:50%;
+         background:#229ED9;
+         display:flex;align-items:center;justify-content:center;
+         box-shadow:0 4px 20px rgba(34,158,217,.45);
+         font-size:24px;text-decoration:none;
+         transition:transform .18s,box-shadow .18s"
+  onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 28px rgba(34,158,217,.65)'"
+  onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(34,158,217,.45)'">
+  ✈️
+</a>
+
+<script>
+// ── Defaults ──────────────────────────────────────────────────────────────────
+const DEFAULT_LEVS = [25,20,20,15,10,5,3,2,1,1,1,1];
+let mode   = 'coin';
+let dir    = 'long';
+let levels = [...DEFAULT_LEVS];
+let entryOverrides = [];   // sparse: entryOverrides[i] = actual price user typed for row i (i>=1)
+
+// ── Direction ─────────────────────────────────────────────────────────────────
+function setDir(d){
+  dir = d;
+  document.getElementById('btn-long').className  = 'mode-btn' + (d==='long'?' on':'');
+  document.getElementById('btn-short').className = 'mode-btn' + (d==='short'?' on':'');
+  // update tbar label and column header
+  document.getElementById('th-move').textContent = d==='long' ? '所需涨幅' : '所需跌幅';
+  calculate();
+}
+
+// ── Exchange fee data (合约 Taker 费率) ────────────────────────────────────────
+const EXCHANGES = {
+  binance: { name:'币安 Binance', orig:0.0005,  disc:0.0004,  pct:'20%', ref:'35BACK',    url:'https://bit.ly/35BACK' },
+  bitget:  { name:'Bitget',       orig:0.0006,  disc:0.0003,  pct:'50%', ref:'cpvs9642',  url:'https://partner.bitget.com/bg/ln6xlnxg' },
+  okx:     { name:'欧易 OKX',     orig:0.0005,  disc:0.0004,  pct:'20%', ref:'71990708',  url:'https://www.okx.com/cn/join/71990708' },
+  bybit:   { name:'Bybit',        orig:0.00055, disc:0.00033, pct:'40%', ref:'40cat',     url:'https://partner.bybit.com/b/40cat' },
+};
+
+function getExchange(){
+  return EXCHANGES[document.getElementById('exchange-sel').value];
+}
+
+const COINS = [
+  {s:'BTC',n:'Bitcoin'},{s:'ETH',n:'Ethereum'},{s:'BNB',n:'BNB'},
+  {s:'SOL',n:'Solana'},{s:'XRP',n:'XRP'},{s:'ADA',n:'Cardano'},
+  {s:'AVAX',n:'Avalanche'},{s:'DOGE',n:'Dogecoin'},{s:'TRX',n:'TRON'},
+  {s:'TON',n:'Toncoin'},{s:'LINK',n:'Chainlink'},{s:'MATIC',n:'Polygon'},
+  {s:'DOT',n:'Polkadot'},{s:'LTC',n:'Litecoin'},{s:'SHIB',n:'Shiba Inu'},
+  {s:'BCH',n:'Bitcoin Cash'},{s:'NEAR',n:'NEAR'},{s:'UNI',n:'Uniswap'},
+  {s:'APT',n:'Aptos'},{s:'ARB',n:'Arbitrum'},{s:'OP',n:'Optimism'},
+  {s:'ATOM',n:'Cosmos'},{s:'FIL',n:'Filecoin'},{s:'VET',n:'VeChain'},
+  {s:'STX',n:'Stacks'},{s:'SUI',n:'Sui'},{s:'INJ',n:'Injective'},
+  {s:'MKR',n:'Maker'},{s:'PEPE',n:'Pepe'},{s:'WIF',n:'dogwifhat'},
+  {s:'CUSTOM',n:'自定义币种...'},
+];
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(function init(){
+  const sel = document.getElementById('coin-sel');
+  COINS.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.s;
+    o.textContent = c.s === 'CUSTOM' ? '✏ 自定义币种...' : `${c.s}  ·  ${c.n}`;
+    sel.appendChild(o);
+  });
+  sel.value = 'DOGE';
+  updateMode();
+  updateFeeNote();
+  calculate();
+})();
+
+// ── Mode ──────────────────────────────────────────────────────────────────────
+function setMode(m){
+  mode = m;
+  document.getElementById('btn-coin').className = 'mode-btn' + (m==='coin'?' on':'');
+  document.getElementById('btn-usdt').className = 'mode-btn' + (m==='usdt'?' on gold':'');
+  updateMode();
+  calculate();
+}
+
+function updateMode(){
+  const c = mode === 'coin';
+  document.getElementById('cap-label').textContent   = c ? '初始本金（持币数量）' : '初始本金（USDT 金额）';
+  document.getElementById('cap-note').textContent    = c ? '以币数量计（如 10000 DOGE）' : '以 USDT 金额计';
+  document.getElementById('cap-note').className      = 'ctrl-note' + (c ? '' : ' gold');
+  document.getElementById('th-cap').textContent      = c ? '持币本金（币）' : 'USDT 本金';
+  document.getElementById('th-pos').textContent      = c ? '合约仓位（币）' : '仓位（币数）';
+  document.getElementById('th-val').textContent      = '完成后资产（U）';
+  document.getElementById('th-profit').textContent   = c ? '本级获利（币）' : '本级获利（U）';
+  updateFeeNote();
+  document.getElementById('tbar-label').textContent  = c ? '滚仓路径 · 币本位' : '滚仓路径 · U本位';
+  document.getElementById('mnote').innerHTML = c
+    ? '💡 <b>币本位</b>：你先买入并持有该币，币本身已带 <b>1 倍多头暴露</b>。合约杠杆叠加在上面，实际总暴露 = (1 + L) 倍。<br>&nbsp;&nbsp;&nbsp;&nbsp;入场时以 <b>币数量</b> 为本金，价格上涨时本金的 USDT 价值同步增长。'
+    : '💡 <b>U本位</b>：以 USDT 作保证金，不持有底层资产，<b>没有天然 1 倍暴露</b>。实际总暴露 = USDT × L 倍。<br>&nbsp;&nbsp;&nbsp;&nbsp;相比币本位，同等杠杆下少了一层价格上涨的本金放大效应。';
+}
+
+// ── Coin ──────────────────────────────────────────────────────────────────────
+function onCoinChange(){
+  const v = document.getElementById('coin-sel').value;
+  document.getElementById('custom-row').style.display = v==='CUSTOM' ? 'block' : 'none';
+  calculate();
+}
+
+function getSymbol(){
+  const v = document.getElementById('coin-sel').value;
+  if(v==='CUSTOM'){
+    const t = (document.getElementById('custom-sym').value||'').trim().toUpperCase();
+    return t.endsWith('USDT') ? t : t+'USDT';
+  }
+  return v+'USDT';
+}
+
+function getCoinName(){
+  const v = document.getElementById('coin-sel').value;
+  if(v==='CUSTOM') return (document.getElementById('custom-sym').value||'?').toUpperCase();
+  return v;
+}
+
+
+
+// ── Leverage helpers ──────────────────────────────────────────────────────────
+function clampLev(v){ return Math.min(100, Math.max(1, Math.round(v)||1)) }
+
+function onInitLevChange(v){
+  levels[0] = clampLev(v);
+  calculate();
+}
+
+function onRowLevChange(idx, v){
+  levels[idx] = clampLev(v);
+  if(idx===0) document.getElementById('init-lev').value = levels[0];
+  calculate();
+}
+
+function addLevel(){
+  levels.push(1);
+  calculate();
+}
+
+function removeLevel(idx){
+  if(levels.length<=1) return;
+  levels.splice(idx,1);
+  entryOverrides.splice(idx,1);
+  calculate();
+}
+
+function resetLevs(){
+  levels = [...DEFAULT_LEVS];
+  entryOverrides = [];
+  document.getElementById('init-lev').value = levels[0];
+  calculate();
+}
+
+// ── Entry price override ──────────────────────────────────────────────────────
+function onEntryChange(idx, val){
+  const v = parseFloat(val);
+  if(isFinite(v) && v > 0){
+    entryOverrides[idx] = v;
+  } else {
+    delete entryOverrides[idx];
+  }
+  calculate();
+}
+
+function clearEntryOverride(idx){
+  delete entryOverrides[idx];
+  calculate();
+}
+
+// ── Number formatting ─────────────────────────────────────────────────────────
+function fmtNum(n, dp=2){
+  if(!isFinite(n)||isNaN(n)) return '—';
+  if(n>=1e12) return (n/1e12).toFixed(2)+'T';
+  if(n>=1e9)  return (n/1e9).toFixed(2)+'B';
+  if(n>=1e6)  return (n/1e6).toFixed(2)+'M';
+  if(n>=1000) return n.toLocaleString('en-US',{maximumFractionDigits:dp});
+  return n.toFixed(dp);
+}
+
+function fmtPrice(p){
+  if(!p||!isFinite(p)) return '—';
+  if(p>=10000) return '$'+p.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  if(p>=1)     return '$'+p.toFixed(4);
+  if(p>=0.01)  return '$'+p.toFixed(6);
+  return '$'+p.toFixed(8);
+}
+
+function fmtPct(r){ return '+'+(r*100).toFixed(2)+'%' }
+
+// ── Fee note ──────────────────────────────────────────────────────────────────
+function updateFeeNote(){
+  const ex = getExchange();
+  const el = document.getElementById('fee-note');
+  el.innerHTML =
+    `原价 <span style="color:var(--red);text-decoration:line-through">${(ex.orig*100).toFixed(3)}%</span>` +
+    `&nbsp;→&nbsp;优惠后 <span style="color:var(--green);font-weight:700">${(ex.disc*100).toFixed(3)}%</span>` +
+    `&nbsp;<span style="color:var(--text)">（省${ex.pct}，优惠码 <b style="color:var(--accent)">${ex.ref}</b>）</span>`;
+  // wire register button href
+  document.getElementById('reg-btn').href = ex.url;
+}
+
+// ── Core calculation ──────────────────────────────────────────────────────────
+function calculate(){
+  const price0 = parseFloat(document.getElementById('entry-price').value);
+  const cap0   = parseFloat(document.getElementById('init-cap').value);
+  const coin   = getCoinName();
+  const isCoin = mode === 'coin';
+  const ex     = getExchange();
+  updateFeeNote();
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  const valid = isFinite(price0) && price0>0 && isFinite(cap0) && cap0>0;
+
+  if(!valid){
+    const tr = document.createElement('tr');
+    tr.className='empty-row';
+    tr.innerHTML=`<td colspan="11">请输入价格和本金后开始计算</td>`;
+    tbody.appendChild(tr);
+    clearSummary(); return;
+  }
+
+  const isLong = dir === 'long';
+
+  // update tbar label and column header
+  document.getElementById('tbar-label').textContent =
+    (isCoin?'币本位':'U本位') + ' · ' + (isLong?'做多 📈':'做空 📉');
+  document.getElementById('th-move').textContent = isLong ? '所需涨幅' : '所需跌幅';
+
+  let rows=[], prevPt=price0, C=cap0;
+
+  for(let i=0;i<levels.length;i++){
+    const L  = levels[i];
+    const r  = 1/L;
+    // Row 0 always uses price0; rows 1+ use override if set, else previous target price
+    const calcP   = i===0 ? price0 : prevPt;         // auto-calculated entry
+    const P       = i===0 ? price0 : (entryOverrides[i] ?? calcP);  // actual entry (possibly overridden)
+    const isOvr   = i>0 && entryOverrides[i] != null;
+    const Pt      = isLong ? P*(1+r) : P*(1-r);
+    const movePct = isLong ? r : -r;
+
+    let posCoins, afterValU, profitAmt, profitUSD, feeOrig, feeDisc;
+    const PtAbs = Math.abs(Pt);
+    if(isCoin){
+      posCoins  = C*L;
+      profitAmt = C;
+      profitUSD = C * PtAbs;
+      afterValU = 2*C * PtAbs;
+      const notionalOpen  = posCoins * P;
+      const notionalClose = posCoins * PtAbs;
+      feeOrig = ex.orig * (notionalOpen + notionalClose);
+      feeDisc = ex.disc * (notionalOpen + notionalClose);
+    } else {
+      posCoins  = (C*L)/P;
+      profitAmt = C;
+      profitUSD = C;
+      afterValU = 2*C;
+      const notionalOpen  = C * L;
+      const notionalClose = C * L * (PtAbs/P);
+      feeOrig = ex.orig * (notionalOpen + notionalClose);
+      feeDisc = ex.disc * (notionalOpen + notionalClose);
+    }
+
+    rows.push({i,L,r,movePct,P,calcP,isOvr,Pt,PtAbs,C,posCoins,afterValU,profitAmt,profitUSD,feeOrig,feeDisc});
+    prevPt = Pt;
+    C  = C*2;
+  }
+
+  // Render rows
+  rows.forEach(row=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML=`
+      <td><span class="lvl-badge">${row.i+1}</span></td>
+      <td style="padding:6px 10px">
+        ${row.i===0
+          ? `<span style="color:var(--text);font-family:var(--mono);font-size:12.5px">${fmtPrice(row.P)}</span>`
+          : `<div style="display:flex;align-items:center;gap:4px">
+               <input class="entry-in${row.isOvr?' overridden':''}"
+                 type="number" step="any" min="0"
+                 value="${row.P}"
+                 placeholder="${row.calcP.toFixed(6)}"
+                 onchange="onEntryChange(${row.i},this.value)"
+                 title="${row.isOvr?'已手动设置（点击删除以重置）':'自动计算，可手动修改'}">
+               ${row.isOvr
+                 ? `<button onclick="clearEntryOverride(${row.i})" title="还原为自动计算" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;padding:2px 4px;line-height:1">↺</button>`
+                 : ''}
+             </div>`
+        }
+      </td>
+      <td class="${isLong?'c-gold':'c-green'}">${fmtPrice(row.PtAbs)}</td>
+      <td class="${isLong?'c-green':'c-red'}" style="${isLong?'':'color:var(--red)'}">
+        ${isLong ? '+' : ''}${(row.movePct*100).toFixed(2)}%
+      </td>
+      <td>
+        <div class="lev-wrap">
+          <input class="lev-in" type="number" value="${row.L}" min="1" max="100"
+            onchange="onRowLevChange(${row.i},this.value)"
+            oninput="onRowLevChange(${row.i},this.value)">
+          <span class="lev-x">x</span>
+        </div>
+      </td>
+      <td>${fmtNum(row.C,2)} <span class="c-dim">${isCoin?coin:'U'}</span></td>
+      <td>${fmtNum(row.posCoins,0)} <span class="c-dim">${coin}</span></td>
+      <td class="c-hi">$${fmtNum(row.afterValU,2)}</td>
+      <td>
+        <span class="c-green">+${fmtNum(row.profitAmt,2)} <span class="c-dim">${isCoin?coin:'U'}</span></span>
+        <div style="font-size:10px;color:var(--text);margin-top:2px">≈ $${fmtNum(row.profitUSD,2)}</div>
+      </td>
+      <td>
+        <span style="color:var(--green);font-weight:500">$${fmtNum(row.feeDisc,4)}</span>
+        <div style="font-size:10px;color:var(--red);margin-top:2px;text-decoration:line-through">$${fmtNum(row.feeOrig,4)}</div>
+      </td>
+      <td><button class="del-btn" onclick="removeLevel(${row.i})" title="删除">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateSummary(rows, price0, cap0, isCoin, coin, ex);
+}
+
+function clearSummary(){
+  ['s-init','s-init-sub','s-final','s-final-sub','s-mult','s-mult-sub',
+   's-tgt','s-tgt-sub','s-gain','s-gain-sub','s-lvls',
+   's-fee-orig','s-fee-orig-sub','s-fee-disc','s-fee-disc-sub',
+   's-fee-save','s-fee-save-sub']
+    .forEach(id=>{ document.getElementById(id).textContent='—'; });
+}
+
+function updateSummary(rows, price0, cap0, isCoin, coin, ex){
+  if(!rows.length){clearSummary();return}
+  const isLong   = dir === 'long';
+  const n        = rows.length;
+  const lastRow  = rows[n-1];
+  const finalCap = cap0 * Math.pow(2,n);
+  const finalPt  = lastRow.PtAbs;   // always positive
+
+  const initU      = isCoin ? cap0*price0 : cap0;
+  const finalU     = isCoin ? finalCap*finalPt : finalCap;
+  const grossProfit = finalU - initU;
+  const mult       = finalU/initU;
+
+  // Price movement (always positive magnitude, direction shown in label)
+  const priceMult = isLong ? finalPt/price0 : price0/finalPt;
+  const totalPct  = isLong ? ((finalPt/price0 - 1)*100) : ((1 - finalPt/price0)*100);
+
+  const totalFeeOrig = rows.reduce((s,r)=>s+r.feeOrig, 0);
+  const totalFeeDisc = rows.reduce((s,r)=>s+r.feeDisc, 0);
+  const feeSave      = totalFeeOrig - totalFeeDisc;
+
+  document.getElementById('s-init').textContent    = '$'+fmtNum(initU,2);
+  document.getElementById('s-init-sub').textContent= isCoin
+    ? `${fmtNum(cap0,0)} ${coin} @ ${fmtPrice(price0)}`
+    : `${fmtNum(cap0,0)} USDT`;
+
+  document.getElementById('s-final').textContent    = '$'+fmtNum(finalU,2);
+  document.getElementById('s-final-sub').textContent= isCoin
+    ? `${fmtNum(finalCap,0)} ${coin} @ ${fmtPrice(finalPt)}`
+    : `${fmtNum(finalCap,0)} USDT`;
+
+  document.getElementById('s-mult').textContent    = fmtNum(mult,1)+'×';
+  document.getElementById('s-mult-sub').textContent= `本金翻 2^${n} = ${Math.pow(2,n).toLocaleString()} 倍`;
+
+  document.getElementById('s-tgt').textContent     = fmtPrice(finalPt);
+  document.getElementById('s-tgt-sub').textContent = isLong
+    ? `较入场价 +${fmtNum(totalPct,1)}%，涨 ${fmtNum(priceMult,2)} 倍`
+    : `较入场价 -${fmtNum(totalPct,1)}%，跌至 ${fmtNum(1/priceMult*100,1)}%`;
+
+  document.getElementById('s-gain').textContent    = (isLong?'+':'-') + fmtNum(totalPct,1) + '%';
+  document.getElementById('s-gain-sub').textContent= `${fmtPrice(price0)} → ${fmtPrice(finalPt)}，` +
+    (isLong ? `价格涨 ${fmtNum(priceMult,2)} 倍` : `价格跌 ${fmtNum(totalPct,1)}%`);
+
+  document.getElementById('s-lvls').textContent    = n+' 级';
+
+  document.getElementById('s-fee-orig').textContent    = '$'+fmtNum(totalFeeOrig,2);
+  document.getElementById('s-fee-orig-sub').textContent= `${(ex.orig*100).toFixed(3)}% Taker × 开+平 × ${n}级`;
+
+  document.getElementById('s-fee-disc').textContent    = '$'+fmtNum(totalFeeDisc,2);
+  document.getElementById('s-fee-disc-sub').textContent= `${(ex.disc*100).toFixed(3)}% Taker，使用邀请码 ${ex.ref}`;
+
+  document.getElementById('s-fee-save').textContent    = '$'+fmtNum(feeSave,2);
+  document.getElementById('s-fee-save-sub').textContent= `${ex.name} · 优惠码 ${ex.ref} · 省 ${ex.pct}`;
+  document.getElementById('save-reg-btn').href = ex.url;
+}
+</script>
+</body>
+</html>
