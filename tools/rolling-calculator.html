@@ -431,43 +431,9 @@ td:nth-child(2){text-align:left}
     <div class="scard-label" style="color:var(--gold)">优惠链接节省手续费</div>
     <div class="scard-val c-gold" id="s-fee-save">—</div>
     <div class="scard-sub" id="s-fee-save-sub">—</div>
-    <a id="save-reg-btn" href="#" target="_blank" rel="noopener"
-      style="display:flex;align-items:center;justify-content:center;gap:5px;
-             margin-top:12px;padding:7px 10px;border-radius:6px;
-             background:rgba(245,166,35,.15);border:1px solid var(--gold);
-             color:var(--gold);font-family:var(--sans);font-size:11px;font-weight:700;
-             text-decoration:none;transition:all .15s">
-      🔗 点击注册领取优惠
-    </a>
-  </div>
-  <div class="scard" style="border-color:#229ED9;background:rgba(34,158,217,.05)">
-    <div class="scard-label" style="color:#229ED9">联系作者 · 有问必答</div>
-    <div class="scard-val" style="font-size:15px;color:var(--text-hi)">@jamesH7894</div>
-    <div class="scard-sub" style="margin-top:6px">注册后发 UID，每周返佣直接打给你</div>
-    <a href="https://t.me/jamesH7894" target="_blank" rel="noopener"
-      style="display:flex;align-items:center;justify-content:center;gap:6px;
-             margin-top:12px;padding:7px 10px;border-radius:6px;
-             background:rgba(34,158,217,.2);border:1px solid #229ED9;
-             color:#229ED9;font-family:var(--sans);font-size:11px;font-weight:700;
-             text-decoration:none;transition:all .15s">
-      ✈️ Telegram 私信我
-    </a>
   </div>
 </div>
 
-<!-- TG FLOATING BUTTON -->
-<a href="https://t.me/jamesH7894" target="_blank" rel="noopener" title="Telegram 联系作者"
-  style="position:fixed;bottom:28px;right:28px;z-index:999;
-         width:52px;height:52px;border-radius:50%;
-         background:#229ED9;
-         display:flex;align-items:center;justify-content:center;
-         box-shadow:0 4px 20px rgba(34,158,217,.45);
-         font-size:24px;text-decoration:none;
-         transition:transform .18s,box-shadow .18s"
-  onmouseover="this.style.transform='scale(1.12)';this.style.boxShadow='0 6px 28px rgba(34,158,217,.65)'"
-  onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(34,158,217,.45)'">
-  ✈️
-</a>
 
 <script>
 // ── Defaults ──────────────────────────────────────────────────────────────────
@@ -839,7 +805,6 @@ function updateSummary(rows, price0, cap0, isCoin, coin, ex){
 
   document.getElementById('s-fee-save').textContent    = '$'+fmtNum(feeSave,2);
   document.getElementById('s-fee-save-sub').textContent= `${ex.name} · 优惠码 ${ex.ref} · 省 ${ex.pct}`;
-  document.getElementById('save-reg-btn').href = ex.url;
 }
 </script>
 </body>
